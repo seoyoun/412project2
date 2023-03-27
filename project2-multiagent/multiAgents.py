@@ -76,7 +76,23 @@ class ReflexAgent(Agent):
 
         "*** YOUR CODE HERE ***"
 
-        return successorGameState.getScore()
+        # find closest food
+        newFoodList = newFood.asList()
+        minFood = float("inf")
+
+        for newFood in newFoodList:
+            distToNewFood = manhattanDistance(newPos, newFood)
+            minFood = min(minFood, distToNewFood)
+
+        # if any ghost is too close (right next to pacman), avoid by returning smallest number
+        for ghost in newGhostStates:
+            ghostPos = ghost.getPosition()
+            distToGhost = manhattanDistance(ghostPos, newPos)
+            if distToGhost <= 1:
+                return -float('inf')
+        
+        # farther the food, smaller the score
+        return successorGameState.getScore() + 1.0/minFood
 
 def scoreEvaluationFunction(currentGameState):
     """
