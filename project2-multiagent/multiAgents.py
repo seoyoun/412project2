@@ -228,6 +228,11 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         return action
     
 
+
+    """
+    checks for terminal state base case
+    if not, chooses between min and max recursive function
+    """
     def value(self, gameState, depth, agentIndex, alpha, beta):
 
         numAgents = gameState.getNumAgents()
@@ -236,7 +241,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         if gameState.isWin() or gameState.isLose() or depth is bottom:
             return self.evaluationFunction(gameState)
         
-        
+
         isPacman = agentIndex == 0
 
         if isPacman:
