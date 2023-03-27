@@ -165,7 +165,8 @@ class MinimaxAgent(MultiAgentSearchAgent):
             return "Stop", self.evaluationFunction(gameState)
 
         v = -999999
-        
+        bestAction = "Stop"
+
         # generating legal actions for pacman
         legalActions = gameState.getLegalActions(0)
         
@@ -191,7 +192,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
             return "Stop", self.evaluationFunction(gameState)
 
         v = 999999
-        bestAction = " "
+        bestAction = "Stop"
 
         # generating legal actions for ghost
         legalActions = gameState.getLegalActions(ghostValue)
@@ -251,7 +252,8 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
             return "Stop", self.evaluationFunction(gameState)
 
         v = -999999
-        
+        bestAction = "Stop"
+
         # generating legal actions for pacman
         legalActions = gameState.getLegalActions(0)
         
@@ -276,7 +278,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
             return "Stop", self.evaluationFunction(gameState)
 
         v = 0.0
-        bestAction = " "
+        bestAction = "Stop"
 
         # generating legal actions for ghost and getting the count for probability
         legalActions = gameState.getLegalActions(ghostValue)
@@ -303,10 +305,57 @@ def betterEvaluationFunction(currentGameState):
     Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
     evaluation function (question 5).
 
-    DESCRIPTION: <write something here so we know what you did>
+    DESCRIPTION: This betterEvaluationFunction builds upon the evaluation function from Question 1.
+    - This first accounts for the distance between the pacman position of the current state and the nearest food item
+    - Then, it accounts for the largestScaredTime of the ghosts (if any), as the longer the scared time the
+      ghost has, the more time the pacman has to move and to even capture the ghost
+    - Last, it accounts for position of the non-scared ghosts itself, returning the smallest number possible altogether 
+      if the ghost is near the pacman to avoid the move, and finding the min distance if not too close
+    - To calculate the final evaluation value, the sum of the current score, the reciprocal of the minFood distance
+      (the closer the food, the higher the score will be), the reciprocal of the minimum distance between pacman and ghost, 
+      and the longest scared time (since it is almost like "bonus" score) are taken.
+
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    
+    # Useful information you can extract from a GameState (pacman.py)
+    currPos = currentGameState.getPacmanPosition()
+    currFood = currentGameState.getFood()
+    currGhostStates = currentGameState.getGhostStates()
+    currScaredTimes = [ghostState.scaredTimer for ghostState in currGhostStates]
+
+    # find closest food
+    currFoodList = currFood.asList()
+    minFood = float("inf")
+
+    for currFoodItem in currFoodList:
+        distToNewFood = manhattanDistance(currPos, currFoodItem)
+        minFood = min(minFood, distToNewFood)
+
+
+    # getting the largest scared time, as larger scared time have an opportunity to escape
+    largestScaredTime = -float('inf')
+    
+    for ghostScaredTime in currScaredTimes:
+        if ghostScaredTime > largestScaredTime:
+            largestScaredTime = ghostScaredTime
+
+        
+    # if any ghost is too close (right next to pacman), avoid by returning smallest number
+    minGhostDistance = float('inf')
+    for ghost in currGhostStates:
+        ghostPos = ghost.getPosition()
+        distToGhost = manhattanDistance(ghostPos, currPos)
+        if distToGhost <= 1:
+            return -float('inf')
+        else: 
+            if distToGhost < minGhostDistance:
+                minGhostDistance = distToGhost
+        
+
+    # farther the food, smaller the score
+    return currentGameState.getScore() + 1.0/minFood + 1.0/minGhostDistance + largestScaredTime
+    
 
 # Abbreviation
 better = betterEvaluationFunction
