@@ -15,6 +15,7 @@
 from util import manhattanDistance
 from game import Directions
 import random, util
+import math
 
 from game import Agent
 
@@ -68,12 +69,14 @@ class ReflexAgent(Agent):
         """
         # Useful information you can extract from a GameState (pacman.py)
         successorGameState = currentGameState.generatePacmanSuccessor(action)
+        print(action)
         newPos = successorGameState.getPacmanPosition()
         newFood = successorGameState.getFood()
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
+
         return successorGameState.getScore()
 
 def scoreEvaluationFunction(currentGameState):
@@ -135,7 +138,67 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        bestAction, terminalStateValue = self.maxValue(0, gameState)
+
+        return bestAction
+
+    # max-value function for pacman 
+    def maxValue(self, depthValue, gameState): 
+        #terminal state base case
+        if depthValue == self.depth or gameState.isWin() or gameState.isLose(): 
+            ## check if it is a win or loss first
+            return "Stop", self.evaluationFunction(gameState)
+
+        v = -999999
+        
+        # generating legal actions for pacman
+        legalActions = gameState.getLegalActions(0)
+        
+        
+        for action in legalActions:
+            successorState = gameState.generateSuccessor(0, action)
+            
+            numGhosts = gameState.getNumAgents() - 1
+            
+            # going to the min-value layer starting with the first ghost
+            actionChoice, successorStateValue = self.minValue(depthValue, numGhosts, 1, successorState)
+            if successorStateValue > v:
+                v = successorStateValue
+                bestAction = action
+        
+        return bestAction, v
+    
+    #min-value function for the ghosts
+    def minValue(self, depthValue, numGhosts, ghostValue, gameState):
+        #terminal state base case
+        if depthValue == self.depth or gameState.isWin() or gameState.isLose(): 
+            ## check if it is a win or loss first
+            return "Stop", self.evaluationFunction(gameState)
+
+        v = 999999
+        bestAction = " "
+
+        # if not the last ghost
+        # generating legal actions for ghost
+        legalActions = gameState.getLegalActions(ghostValue)
+
+        for action in legalActions:
+            successorState = gameState.generateSuccessor(ghostValue, action)
+
+            # if not the last ghost, iterate recursively call the minvalue of the next ghost
+            if ghostValue == numGhosts:
+                actionChoice, successorStateValue = self.maxValue(depthValue + 1, successorState)
+                if successorStateValue < v: 
+                    v = successorStateValue
+                    bestAction = action
+            else: 
+                actionChoice, successorStateValue = self.minValue(depthValue, numGhosts, ghostValue + 1, successorState)
+                if successorStateValue < v: 
+                    v = successorStateValue
+                    bestAction = action
+            
+        return bestAction, v
+    
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
