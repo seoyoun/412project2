@@ -236,6 +236,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         if gameState.isWin() or gameState.isLose() or depth is bottom:
             return self.evaluationFunction(gameState)
         
+        
         isPacman = agentIndex == 0
 
         if isPacman:
@@ -260,6 +261,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             numAgents = gameState.getNumAgents()
             successorIndex = successorDepth % numAgents
             
+            #essentially    v = max(v, value(successor, alpha, beta))
             successorValue = self.value(successorState, successorDepth, successorIndex, alpha, beta)
             if successorValue > v:
                 bestAction, v = action, successorValue
@@ -287,8 +289,8 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             numAgents = gameState.getNumAgents()
             successorIndex = successorDepth % numAgents
 
+            #essentially    v = min(v, value(successor, alpha, beta))
             successorValue = self.value(successorState, successorDepth, successorIndex, alpha, beta)
-
             if successorValue < v:
                 bestAction, v = action, successorValue
             
